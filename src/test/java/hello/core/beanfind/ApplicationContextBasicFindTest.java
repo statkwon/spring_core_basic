@@ -34,7 +34,7 @@ class ApplicationContextBasicFindTest {
 
     // 역할이 아닌 구현에 의존하므로 좋은 방식은 아님
     @Test
-    @DisplayName("구체 타입으로 조회")
+    @DisplayName("구현체 타입으로 조회")
     void findBeanByName2() {
         MemberService memberService = ac.getBean("memberService", MemberServiceImpl.class);
         assertThat(memberService).isInstanceOf(MemberServiceImpl.class);
