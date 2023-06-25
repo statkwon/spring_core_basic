@@ -1,5 +1,9 @@
 package hello.core.member;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
 public class MemberServiceImpl implements MemberService {
 
     // 인터페이스(MemberRepository)와 구현체(MemoryMemberRepository) 모두에게 의존관계를 갖는다. -> OCP, DIP 준수 X
@@ -7,6 +11,7 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
 
     // Dependency Injection
+    @Autowired
     public MemberServiceImpl(MemberRepository memberRepository) {
         this.memberRepository = memberRepository;
     }
