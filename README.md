@@ -13,13 +13,13 @@
 ### 회원 도메인 설계
 ```java
 public class MemberServiceImpl implements MemberService {
-    
-    private final MemberRepository memberRepository = new MemoryMemberRepository();
-    
-    @Override
-    public void join(Member member) {
-        // ...
-    }
+
+  private final MemberRepository memberRepository = new MemoryMemberRepository();
+
+  @Override
+  public void join(Member member) {
+    // ...
+  }
 }
 ```
 - Service 코드가 `MemberRepository`의 인터페이스와 구현체 모두에 의존관계를 갖는다. &rarr; OCP, DIP 준수 X
@@ -27,13 +27,13 @@ public class MemberServiceImpl implements MemberService {
 ```java
 public class OrderServiceImpl implements OrderService {
 
-    private final MemberRepository memberRepository = new MemoryMemberRepository();
-    private final DiscountPolicy discountPolicy = new FixDiscountPolicy();
+  private final MemberRepository memberRepository = new MemoryMemberRepository();
+  private final DiscountPolicy discountPolicy = new FixDiscountPolicy();
 
-    @Override
-    public Order createOrder(Long memberId, String itemName, int itemPrice) {
-        // ...
-    }
+  @Override
+  public Order createOrder(Long memberId, String itemName, int itemPrice) {
+    // ...
+  }
 }
 ```
 - Service 코드가 `MemberRepository`와 `DiscountPolicy`의 인터페이스와 구현체 모두에 의존관계를 갖는다. &rarr; OCP, DIP 준수 X
@@ -92,3 +92,7 @@ public class OrderServiceImpl implements OrderService {
 ### 다양한 설정 형식 지원
 <img width="735" alt="fig7" src="./figures/fig7.png"><br>
 - 스프링 컨테이너는 자바 코드, XML, Groovy 등 다양한 형식의 설정 정보를 받아들일 수 있게 유연하게 설계되어 있다.
+### 스프링 빈 설정 메타 정보
+<img width="735" alt="fig8" src="./figures/fig8.png"><br>
+- `BeanDefinitionReader`가 다양한 형식의 설정 정보를 읽고 빈 설정 메타 정보, `BeanDefinition`을 생성한다.
+- 스프링 컨테이너는 이 메타 정보를 기반으로 스프링 빈을 생성한다.
