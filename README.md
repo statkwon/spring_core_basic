@@ -13,13 +13,13 @@
 ### 회원 도메인 설계
 ```java
 public class MemberServiceImpl implements MemberService {
-
-  private final MemberRepository memberRepository = new MemoryMemberRepository();
-
-  @Override
-  public void join(Member member) {
-    // ...
-  }
+    
+    private final MemberRepository memberRepository = new MemoryMemberRepository();
+    
+    @Override
+    public void join(Member member) {
+        // ...
+    }
 }
 ```
 - Service 코드가 `MemberRepository`의 인터페이스와 구현체 모두에 의존관계를 갖는다. &rarr; OCP, DIP 준수 X
@@ -27,13 +27,13 @@ public class MemberServiceImpl implements MemberService {
 ```java
 public class OrderServiceImpl implements OrderService {
 
-  private final MemberRepository memberRepository = new MemoryMemberRepository();
-  private final DiscountPolicy discountPolicy = new FixDiscountPolicy();
+    private final MemberRepository memberRepository = new MemoryMemberRepository();
+    private final DiscountPolicy discountPolicy = new FixDiscountPolicy();
 
-  @Override
-  public Order createOrder(Long memberId, String itemName, int itemPrice) {
-    // ...
-  }
+    @Override
+    public Order createOrder(Long memberId, String itemName, int itemPrice) {
+        // ...
+    }
 }
 ```
 - Service 코드가 `MemberRepository`와 `DiscountPolicy`의 인터페이스와 구현체 모두에 의존관계를 갖는다. &rarr; OCP, DIP 준수 X
@@ -96,3 +96,43 @@ public class OrderServiceImpl implements OrderService {
 <img width="735" alt="fig8" src="./figures/fig8.png"><br>
 - `BeanDefinitionReader`가 다양한 형식의 설정 정보를 읽고 빈 설정 메타 정보, `BeanDefinition`을 생성한다.
 - 스프링 컨테이너는 이 메타 정보를 기반으로 스프링 빈을 생성한다.
+
+## 싱글톤 컨테이너
+### 웹 애플리케이션과 싱글톤
+<img width="735" alt="fig9" src="./figures/fig9.png"><br>
+- 웹 애플리케이션에서는 보통 여러 고객이 동시에 요청을 하는데, 스프링 없는 순수한 DI 컨테이너인 `AppConfig`는 요청을 할 때마다 객체를 새로 생성한다. &rarr; 메모리 낭비
+- 해결책 &rarr; 싱글톤 패턴: 인스턴스가 딱 한 개만 생성되는 것을 보장하는 디자인 패턴
+- But, 싱글톤 패턴은 유연성이 떨어짐
+  - 싱글톤 패턴을 구현하기 위해 많은 코드가 필요
+  - 의존 관계 상 클라이언트가 구현체에 의존 &rarr; DIP, OCP 위반
+  - 테스트하기 어려움
+  - 내부 속성을 변경하거나 초기화하기 어려움
+  - `private` 생성자로 자식 클래스를 만들기 어려움
+### 싱글톤 컨테이너
+<img width="735" alt="fig10" src="./figures/fig10.png"><br>
+- 스프링 컨테이너는 싱글톤 패턴을 적용하지 않아도 객체 인스턴스를 싱글톤으로 관리한다. &rarr; 싱글톤 패턴의 문제점을 해결하면서 객체 인스턴스를 싱글톤으로 관리 가능
+- cf. 싱글톤 레지스트리: 싱글톤 객체를 생성하고 관리하는 기능
+- 스프링의 기본 빈 등록 방식은 싱글톤이지만, 싱글톤 방식만 지원하는 것은 아니다.
+### 싱글톤 방식의 주의점
+- 싱글톤 방식은 여러 클라이언트가 하나의 객체 인스턴스를 공유하므로 싱글톤 객체를 무상태(Stateless)로 설계해야 한다.
+  - 특정 클라이언트에 의존적인 필드가 없도록 설계
+  - 특정 클라이언트가 값을 변경할 수 있는 필드가 없도록 설계
+  - 가급적 읽기만 가능하도록 설계
+  - 팰드 대신 지역 변수, 파라미터, ThreadLocal 등을 사용하도록 설계
+### @Configuration과 바이트코드 조작의 마법
+<img width="735" alt="fig11" src="./figures/fig11.png"><br>
+- `AppConfig`의 자바 코드 상에서는 객체 인스턴스들이 여러 번 생성되는 것이 맞다.
+- 따라서 스프링 컨테이너는 스프링 빈을 싱글톤 객체로 관리하기 위해 클래스의 바이트코드를 조작하는 라이브러리를 사용한다. &rarr; CGLIB라는 라이브러리를 사용해서 `AppConfig` 클래스를 상속받은 임의의 클래스를 만들고 해당 클래스를 스프링 빈으로 등록한다.
+```java
+// AppConfig@CGLIB 예상 코드
+@Bean
+public MemberRepository memberRepository() {
+    if (MemoryMemberRepository가 이미 스프링 컨테이너에 등록되어 있으면) {
+        return 스프링 컨테이너에서 찾아서 반환;
+    } else {
+        기존 로직을 호출해서 MemoryMemberRepository를 생성하고 스프링 컨테이너에 등록
+        return 반환;
+    }
+}
+```
+- 이 모든 것은 `@Configuration`을 붙인 경우에만 적용된다. `@Bean`만 사용할 경우 스프링 빈으로 등록은 되지만 싱글톤 객체로 관리되지는 않는다. 
